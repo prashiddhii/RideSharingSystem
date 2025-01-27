@@ -1,0 +1,36 @@
+﻿@model IEnumerable<RideSharingSystem.Models.Ride>
+
+<h1>Available Rides</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Start Location</th>
+            <th>End Location</th>
+            <th>Available Seats</th>
+            <th>Price</th>
+            <th>Driver</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.StartLocation</td>
+                <td>@item.EndLocation</td>
+                <td>@item.AvailableSeats</td>
+                <td>Rs @item.Price.ToString("F2")</td>
+                <td>@item.Driver?.Name</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Details</a>
+                    <a asp-action="Book" asp-route-id="@item.Id" class="btn btn-success">Book</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Create New Ride</a>
