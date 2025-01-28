@@ -25,12 +25,5 @@ namespace RideSharingSystem.Models
 
         [Required]
         public decimal Price { get; set; }
-
-        public virtual ICollection<Booking> Bookings { get; set; }
-
-        public Ride()
-        {
-            Bookings = new HashSet<Booking>();
-        }
     }
 }

@@ -17,31 +17,31 @@ namespace RideSharingSystem.Controllers
             _context = context;
         }
 
-
         public IActionResult Index()
-        {
-            // This will be our landing page now
-            return View();
-        }
-
-        public IActionResult RideList()
         {
             try
             {
+                // Make sure to include the Driver information and get the latest rides
                 var rides = _context.Rides
-                    .Include(r => r.Driver)
-                    .OrderByDescending(r => r.Id)
+                    .Include(r => r.Driver)  // This ensures we load the Driver data
+                    .OrderByDescending(r => r.Id)  // This shows newest rides first
                     .ToList();
 
-                return View(rides ?? new List<Ride>());
+                // Add some debug logging
+                _logger.LogInformation($"Retrieved {rides.Count} rides");
+                foreach (var ride in rides)
+                {
+                    _logger.LogInformation($"Ride ID: {ride.Id}, From: {ride.StartLocation}, To: {ride.EndLocation}, Driver: {ride.DriverId}");
+                }
+
+                return View(rides);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching rides");
+                _logger.LogError($"Error retrieving rides: {ex.Message}");
                 return View(new List<Ride>());
             }
         }
-
 
         // GET: Home/Create
         public IActionResult Create()
@@ -150,6 +150,7 @@ namespace RideSharingSystem.Controllers
                 return View();
             }
         }
+
         // GET: Home/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -175,26 +176,11 @@ namespace RideSharingSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            try
+            var ride = await _context.Rides.FindAsync(id);
+            if (ride != null)
             {
-                var ride = await _context.Rides
-                    .Include(r => r.Bookings)  // Include related bookings
-                    .FirstOrDefaultAsync(m => m.Id == id);
-
-                if (ride != null)
-                {
-                    // First remove all related bookings
-                    _context.Bookings.RemoveRange(ride.Bookings);
-                    // Then remove the ride
-                    _context.Rides.Remove(ride);
-                    await _context.SaveChangesAsync();
-                    TempData["Success"] = "Ride deleted successfully!";
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting ride: {ex.Message}");
-                TempData["Error"] = "Unable to delete ride. Please try again.";
+                _context.Rides.Remove(ride);
+                await _context.SaveChangesAsync();
             }
 
             return RedirectToAction(nameof(Index));
@@ -214,71 +200,6 @@ namespace RideSharingSystem.Controllers
         private bool RideExists(int id)
         {
             return _context.Rides.Any(e => e.Id == id);
-        }
-
-
-        // GET: Home/Book/id
-        public async Task<IActionResult> Book(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var ride = await _context.Rides
-                .Include(r => r.Driver)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (ride == null)
-            {
-                return NotFound();
-            }
-
-            return View(ride);
-        }
-
-        // POST: Home/BookConfirmed
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BookConfirmed(int id)
-        {
-            var ride = await _context.Rides.FindAsync(id);
-            if (ride == null)
-            {
-                return NotFound();
-            }
-
-            if (ride.AvailableSeats < 1)
-            {
-                TempData["Error"] = "No seats available for this ride.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Create new booking
-            var booking = new Booking
-            {
-                RideId = ride.Id,
-                RiderId = 1, // You should replace this with actual logged-in user's ID
-                Status = "Confirmed"
-            };
-
-            // Decrease available seats
-            ride.AvailableSeats--;
-
-            try
-            {
-                _context.Bookings.Add(booking);
-                _context.Update(ride);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Ride booked successfully!";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error booking ride: {ex.Message}");
-                TempData["Error"] = "Unable to book ride. Please try again.";
-            }
-
-            return RedirectToAction(nameof(Index));
         }
     }
 }

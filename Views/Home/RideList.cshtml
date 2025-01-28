@@ -1,41 +1,54 @@
-﻿@model IEnumerable<RideSharingSystem.Models.Ride>
+@model IEnumerable<RideSharingSystem.Models.Ride>
 
 @{
     ViewData["Title"] = "Available Rides";
 }
 
+<div class="container mt-4">
+    <h2>Available Rides</h2>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Start Location</th>
+                    <th>End Location</th>
+                    <th>Available Seats</th>
+                    <th>Price</th>
+                    <th>Driver</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ride in Model)
+                {
+                    <tr>
+                        <td>@ride.StartLocation</td>
+                        <td>@ride.EndLocation</td>
+                        <td>@ride.AvailableSeats</td>
+                        <td>$@ride.Price.ToString("F2")</td>
+                        <td>@(ride.Driver?.Name ?? "Unknown")</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a asp-action="Edit" asp-route-id="@ride.Id" class="btn btn-sm btn-primary">Edit</a>
+                                <a asp-action="Details" asp-route-id="@ride.Id" class="btn btn-sm btn-info">Details</a>
+                                <a asp-action="Book" asp-route-id="@ride.Id" class="btn btn-sm btn-success">Book</a>
+                                <a asp-action="Delete" asp-route-id="@ride.Id" class="btn btn-sm btn-danger">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
-<h1>Rides Record </h1>
+    <div class="mt-3">
+        <a asp-action="Create" class="btn btn-primary">Create New Ride</a>
+    </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Start Location</th>
-            <th>End Location</th>
-            <th>Available Seats</th>
-            <th>Price</th>
-            <th>Driver</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.StartLocation</td>
-                <td>@item.EndLocation</td>
-                <td>@item.AvailableSeats</td>
-                <td>Rs @item.Price.ToString("F2")</td>
-                <td>@item.Driver?.Name</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary">Edit</a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Details</a>
-                    <a asp-action="Book" asp-route-id="@item.Id" class="btn btn-success">Book</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<a asp-action="Create" class="btn btn-primary">Create New Ride</a>
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success mt-3">
+            @TempData["Success"]
+        </div>
+    }
+</div>
